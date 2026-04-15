@@ -26,22 +26,25 @@ This repository is an end-to-end applied AI system rather than a standalone mode
 
 Place your screenshots or GIF files in `assets/demo/`, then keep or replace the paths below.
 
-![Realtime Monitoring](assets/demo/realtime-monitor.jpg)
+![Realtime Monitoring](assets/demo/demo-1.jpg)
 
-![Alert Result](assets/demo/alert-result.jpg)
+![Alert Result](assets/demo/demo-2.jpg)
+
+![Realtime Dashboard](assets/demo/demo-3.jpg)
 
 ### Video Demo
 
 Add your public YouTube link below.
 
-[Watch demo on YouTube](https://youtube.com/shorts/your-video-id)
+[Watch demo on YouTube](https://youtu.be/A_NfsMDPsY4)
 
 ### How To Add Your Demo Media
 
 1. Put your screenshots or GIF files in `assets/demo/`
 2. If you want the current README to work without edits, use these exact names:
-   - `assets/demo/realtime-monitor.jpg`
-   - `assets/demo/alert-result.jpg`
+   - `assets/demo/demo-1.jpg`
+   - `assets/demo/demo-2.jpg`
+   - `assets/demo/demo-3.jpg`
 3. Replace the YouTube link in the `Video Demo` section with your real link
 4. Push the changes with:
 
