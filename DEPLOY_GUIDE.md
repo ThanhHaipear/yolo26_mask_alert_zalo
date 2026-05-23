@@ -145,7 +145,7 @@ VITE_API_URL=https://YOUR_CLOUD_RUN_URL
 The repository includes:
 
 - `.github/workflows/ci.yml` for backend tests, frontend build, and backend Docker build
-- `.github/workflows/deploy.yml` for Cloud Run and Firebase Hosting deployment
+- `.github/workflows/deploy.yml` for Artifact Registry image push, Cloud Run deployment, and Firebase Hosting deployment
 
 CI runs on pull requests and pushes to `main` or `master`.
 CD runs on pushes to `main` and can also be started manually from the GitHub Actions tab.
@@ -200,6 +200,7 @@ VIOLATION_GRACE_SECONDS=3
 
 The GitHub Actions service account needs permissions for:
 
+- Service Usage Consumer
 - Cloud Build
 - Cloud Run deployment
 - Artifact Registry image push/read
@@ -219,7 +220,7 @@ in GitHub secrets.
 1. Open a pull request.
 2. GitHub Actions runs backend tests, frontend build, and Docker build.
 3. Merge to `main`.
-4. GitHub Actions builds the backend image with Cloud Build.
+4. GitHub Actions builds the backend image and pushes it to Artifact Registry.
 5. GitHub Actions deploys the backend to Cloud Run.
 6. GitHub Actions builds the frontend with `VITE_API_URL`.
 7. GitHub Actions deploys the frontend to Firebase Hosting.
