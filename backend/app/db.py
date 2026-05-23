@@ -14,7 +14,7 @@ except ImportError:  # pragma: no cover
 
 
 def create_db_engine() -> Engine:
-    if settings.instance_connection_name:
+    if settings.instance_connection_name.strip():
         if not all([settings.db_user, settings.db_pass, settings.db_name]):
             raise ValueError(
                 "DB_USER, DB_PASS, and DB_NAME are required when INSTANCE_CONNECTION_NAME is set"
@@ -44,8 +44,9 @@ def create_db_engine() -> Engine:
             future=True,
         )
 
+    db_url = settings.db_url.strip() or "sqlite:///./mask_alerts.db"
     return create_engine(
-        settings.db_url,
+        db_url,
         connect_args=settings.sqlalchemy_connect_args,
         pool_pre_ping=True,
         future=True,
