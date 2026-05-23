@@ -94,5 +94,8 @@ jobs:
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
+      - name: Check Firebase access
+        run: npx firebase-tools projects:list --json
+
       - name: Deploy Firebase Hosting
         run: npx firebase-tools deploy --only hosting --project "${FIREBASE_PROJECT_ID}"
