@@ -1,0 +1,92 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_REGION: ${{ secrets.GCP_REGION }}
+  ARTIFACT_REPOSITORY: ${{ secrets.ARTIFACT_REPOSITORY }}
+  CLOUD_RUN_SERVICE: ${{ secrets.CLOUD_RUN_SERVICE }}
+  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+
+jobs:
+  deploy-backend:
+    name: Deploy backend to Cloud Run
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push backend image
+        run: |
+          gcloud builds submit backend \
+            --tag "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REPOSITORY}/${CLOUD_RUN_SERVICE}:${GITHUB_SHA}"
+
+      - name: Deploy Cloud Run service
+        run: |
+          gcloud run deploy "${CLOUD_RUN_SERVICE}" \
+            --image "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REPOSITORY}/${CLOUD_RUN_SERVICE}:${GITHUB_SHA}" \
+            --region "${GCP_REGION}" \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 8080 \
+            --memory 2Gi \
+            --cpu 1 \
+            --set-env-vars "^::^APP_NAME=Mask Detection Backend::APP_VERSION=1.0.0::APP_ENV=production::CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}::DB_URL=${{ secrets.DB_URL }}::INSTANCE_CONNECTION_NAME=${{ secrets.INSTANCE_CONNECTION_NAME }}::DB_USER=${{ secrets.DB_USER }}::DB_PASS=${{ secrets.DB_PASS }}::DB_NAME=${{ secrets.DB_NAME }}::PRIVATE_IP=${{ secrets.PRIVATE_IP }}::MODEL_PATH=best_mask.onnx::INPUT_SIZE=640::CONF_THRESHOLD=${{ secrets.CONF_THRESHOLD }}::IOU_THRESHOLD=${{ secrets.IOU_THRESHOLD }}::ALERT_COOLDOWN_SECONDS=${{ secrets.ALERT_COOLDOWN_SECONDS }}::CONTINUOUS_VIOLATION_SECONDS=${{ secrets.CONTINUOUS_VIOLATION_SECONDS }}::VIOLATION_GRACE_SECONDS=${{ secrets.VIOLATION_GRACE_SECONDS }}::DEFAULT_CAMERA_NAME=cloud-run-camera::ENABLE_ZALO_ALERT=${{ secrets.ENABLE_ZALO_ALERT }}::ZALO_BOT_TOKEN=${{ secrets.ZALO_BOT_TOKEN }}::ZALO_CHAT_ID=${{ secrets.ZALO_CHAT_ID }}::ENABLE_GCS_UPLOAD=${{ secrets.ENABLE_GCS_UPLOAD }}::GCS_BUCKET_NAME=${{ secrets.GCS_BUCKET_NAME }}::WEBHOOK_VERIFY_TOKEN=${{ secrets.WEBHOOK_VERIFY_TOKEN }}"
+
+  deploy-frontend:
+    name: Deploy frontend to Firebase Hosting
+    runs-on: ubuntu-latest
+    needs: deploy-backend
+    permissions:
+      contents: read
+      id-token: write
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      - name: Deploy Firebase Hosting
+        run: npx firebase-tools deploy --only hosting --project "${FIREBASE_PROJECT_ID}"

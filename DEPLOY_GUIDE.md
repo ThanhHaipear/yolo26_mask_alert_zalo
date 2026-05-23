@@ -140,7 +140,91 @@ Before building for production, set:
 VITE_API_URL=https://YOUR_CLOUD_RUN_URL
 ```
 
-## 9. End-to-end test checklist
+## 9. CI/CD with GitHub Actions
+
+The repository includes:
+
+- `.github/workflows/ci.yml` for backend tests, frontend build, and backend Docker build
+- `.github/workflows/deploy.yml` for Cloud Run and Firebase Hosting deployment
+
+CI runs on pull requests and pushes to `main` or `master`.
+CD runs on pushes to `main` and can also be started manually from the GitHub Actions tab.
+
+### 9.1 Required GitHub secrets
+
+Add these in GitHub repository settings:
+
+```text
+GCP_PROJECT_ID
+GCP_REGION
+GCP_WORKLOAD_IDENTITY_PROVIDER
+GCP_SERVICE_ACCOUNT
+ARTIFACT_REPOSITORY
+CLOUD_RUN_SERVICE
+FIREBASE_PROJECT_ID
+VITE_API_URL
+CORS_ORIGINS
+DB_URL
+INSTANCE_CONNECTION_NAME
+DB_USER
+DB_PASS
+DB_NAME
+PRIVATE_IP
+CONF_THRESHOLD
+IOU_THRESHOLD
+ALERT_COOLDOWN_SECONDS
+CONTINUOUS_VIOLATION_SECONDS
+VIOLATION_GRACE_SECONDS
+ENABLE_ZALO_ALERT
+ZALO_BOT_TOKEN
+ZALO_CHAT_ID
+ENABLE_GCS_UPLOAD
+GCS_BUCKET_NAME
+WEBHOOK_VERIFY_TOKEN
+```
+
+Recommended values:
+
+```text
+GCP_REGION=asia-southeast1
+ARTIFACT_REPOSITORY=mask-repo
+CLOUD_RUN_SERVICE=mask-api
+CONF_THRESHOLD=0.4
+IOU_THRESHOLD=0.45
+ALERT_COOLDOWN_SECONDS=30
+CONTINUOUS_VIOLATION_SECONDS=15
+VIOLATION_GRACE_SECONDS=3
+```
+
+### 9.2 Google Cloud permissions
+
+The GitHub Actions service account needs permissions for:
+
+- Cloud Build
+- Cloud Run deployment
+- Artifact Registry image push/read
+- Firebase Hosting deployment
+- Cloud Storage write access if `ENABLE_GCS_UPLOAD=true`
+- Cloud SQL access if the backend connects to Cloud SQL
+
+Use Workload Identity Federation for GitHub Actions and store:
+
+- `GCP_WORKLOAD_IDENTITY_PROVIDER`
+- `GCP_SERVICE_ACCOUNT`
+
+in GitHub secrets.
+
+### 9.3 Deployment flow
+
+1. Open a pull request.
+2. GitHub Actions runs backend tests, frontend build, and Docker build.
+3. Merge to `main`.
+4. GitHub Actions builds the backend image with Cloud Build.
+5. GitHub Actions deploys the backend to Cloud Run.
+6. GitHub Actions builds the frontend with `VITE_API_URL`.
+7. GitHub Actions deploys the frontend to Firebase Hosting.
+
+## 10. End-to-end test checklist
 
 1. Open the frontend from Firebase Hosting or local Vite.
 2. Upload one image with no violation.
@@ -150,7 +234,7 @@ VITE_API_URL=https://YOUR_CLOUD_RUN_URL
 6. Confirm Zalo receives a message.
 7. If GCS is enabled, confirm the backend stores an image URL and Bot API can use it.
 
-## 10. Important notes
+## 11. Important notes
 
 - Do not keep secrets in frontend files.
 - Do not hard-code Zalo tokens in source code.

@@ -33,6 +33,42 @@ Production-style deployment uses:
 - `Cloud Storage` for annotated alert image storage
 - backend APIs and services for inference, alert creation, and notification delivery
 
+## CI/CD
+
+This repository includes GitHub Actions workflows:
+
+- `.github/workflows/ci.yml`: runs backend tests, frontend build, and backend Docker image build on pull requests and pushes to `main` or `master`
+- `.github/workflows/deploy.yml`: deploys the backend to Cloud Run and the frontend to Firebase Hosting on pushes to `main` or manual workflow runs
+
+Required GitHub repository secrets for deployment:
+
+- `GCP_PROJECT_ID`
+- `GCP_REGION`
+- `GCP_WORKLOAD_IDENTITY_PROVIDER`
+- `GCP_SERVICE_ACCOUNT`
+- `ARTIFACT_REPOSITORY`
+- `CLOUD_RUN_SERVICE`
+- `FIREBASE_PROJECT_ID`
+- `VITE_API_URL`
+- `CORS_ORIGINS`
+- `DB_URL`
+- `INSTANCE_CONNECTION_NAME`
+- `DB_USER`
+- `DB_PASS`
+- `DB_NAME`
+- `PRIVATE_IP`
+- `CONF_THRESHOLD`
+- `IOU_THRESHOLD`
+- `ALERT_COOLDOWN_SECONDS`
+- `CONTINUOUS_VIOLATION_SECONDS`
+- `VIOLATION_GRACE_SECONDS`
+- `ENABLE_ZALO_ALERT`
+- `ZALO_BOT_TOKEN`
+- `ZALO_CHAT_ID`
+- `ENABLE_GCS_UPLOAD`
+- `GCS_BUCKET_NAME`
+- `WEBHOOK_VERIFY_TOKEN`
+
 ## System Overview
 
 ### Frontend
